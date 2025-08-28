@@ -1,0 +1,684 @@
+{
+	"info": {
+		"_postman_id": "0b743671-7e33-429c-b6fc-3cb442833a94",
+		"name": "Deck of Cards API – Full QA Collection",
+		"description": "Postman collection for testing Deck of Cards API ([https://deckofcardsapi.com/](https://deckofcardsapi.com/)). Includes base tests, blackjack scenario, and error/edge case tests for QA validation.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "11720286",
+		"_collection_link": "https://svetlana.postman.co/workspace/5d82d670-76de-4b30-916d-ff2bd7304e03/collection/11720286-0b743671-7e33-429c-b6fc-3cb442833a94?action=share&source=collection_link&creator=11720286"
+	},
+	"item": [
+		{
+			"name": "Blackjack Scenario",
+			"item": [
+				{
+					"name": "Shuffle new deck for blackjack",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"deck_id\", jsonData.deck_id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1",
+							"protocol": "https",
+							"host": [
+								"deckofcardsapi",
+								"com"
+							],
+							"path": [
+								"api",
+								"deck",
+								"new",
+								"shuffle",
+								""
+							],
+							"query": [
+								{
+									"key": "deck_count",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deal 6 cards (3 each to 2 players)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let data = pm.response.json();",
+									"let p1 = data.cards.slice(0,3);",
+									"let p2 = data.cards.slice(3,6);",
+									"",
+									"function handValue(cards) {",
+									"  let value = 0;",
+									"  let aces = 0;",
+									"  cards.forEach(c => {",
+									"    if ([\"KING\",\"QUEEN\",\"JACK\"].includes(c.value)) value += 10;",
+									"    else if (c.value === \"ACE\") { value += 11; aces++; }",
+									"    else value += parseInt(c.value);",
+									"  });",
+									"  while (value > 21 && aces > 0) { value -= 10; aces--; }",
+									"  return value;",
+									"}",
+									"",
+									"let p1val = handValue(p1);",
+									"let p2val = handValue(p2);",
+									"",
+									"pm.collectionVariables.set(\"player1_value\", p1val);",
+									"pm.collectionVariables.set(\"player2_value\", p2val);",
+									"",
+									"if (p1val === 21) console.log(\"Player 1 has Blackjack!\", p1);",
+									"if (p2val === 21) console.log(\"Player 2 has Blackjack!\", p2);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}/draw/?count=6",
+							"protocol": "https",
+							"host": [
+								"deckofcardsapi",
+								"com"
+							],
+							"path": [
+								"api",
+								"deck",
+								"{{deck_id}}",
+								"draw",
+								""
+							],
+							"query": [
+								{
+									"key": "count",
+									"value": "6"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Error & Edge Case Tests",
+			"item": [
+				{
+					"name": "E1. Draw More Cards Than Available",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}/draw/?count=60",
+							"protocol": "https",
+							"host": [
+								"deckofcardsapi",
+								"com"
+							],
+							"path": [
+								"api",
+								"deck",
+								"{{deck_id}}",
+								"draw",
+								""
+							],
+							"query": [
+								{
+									"key": "count",
+									"value": "60"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "E2. Too Many Decks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=9999",
+							"protocol": "https",
+							"host": [
+								"deckofcardsapi",
+								"com"
+							],
+							"path": [
+								"api",
+								"deck",
+								"new",
+								"shuffle",
+								""
+							],
+							"query": [
+								{
+									"key": "deck_count",
+									"value": "9999"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "E3. Invalid Parameters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=abc",
+							"protocol": "https",
+							"host": [
+								"deckofcardsapi",
+								"com"
+							],
+							"path": [
+								"api",
+								"deck",
+								"new",
+								"shuffle",
+								""
+							],
+							"query": [
+								{
+									"key": "deck_count",
+									"value": "abc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "E4. Negative or Zero Count",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}/draw/?count=-5",
+							"protocol": "https",
+							"host": [
+								"deckofcardsapi",
+								"com"
+							],
+							"path": [
+								"api",
+								"deck",
+								"{{deck_id}}",
+								"draw",
+								""
+							],
+							"query": [
+								{
+									"key": "count",
+									"value": "-5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "E5. Unsupported Methods (PUT/DELETE)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}/draw",
+							"protocol": "https",
+							"host": [
+								"deckofcardsapi",
+								"com"
+							],
+							"path": [
+								"api",
+								"deck",
+								"{{deck_id}}",
+								"draw"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "E5b. Unsupported DELETE deck",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}",
+							"protocol": "https",
+							"host": [
+								"deckofcardsapi",
+								"com"
+							],
+							"path": [
+								"api",
+								"deck",
+								"{{deck_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Create new shuffled deck",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"deck_id\", jsonData.deck_id);",
+							"pm.test(\"Deck created\", function () {",
+							"    pm.expect(jsonData.success).to.eql(true);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1",
+					"protocol": "https",
+					"host": [
+						"deckofcardsapi",
+						"com"
+					],
+					"path": [
+						"api",
+						"deck",
+						"new",
+						"shuffle",
+						""
+					],
+					"query": [
+						{
+							"key": "deck_count",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create deck with jokers",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://deckofcardsapi.com/api/deck/new/?jokers_enabled=true",
+					"protocol": "https",
+					"host": [
+						"deckofcardsapi",
+						"com"
+					],
+					"path": [
+						"api",
+						"deck",
+						"new",
+						""
+					],
+					"query": [
+						{
+							"key": "jokers_enabled",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create partial deck (AS,KH,2C,0H)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,KH,2C,0H",
+					"protocol": "https",
+					"host": [
+						"deckofcardsapi",
+						"com"
+					],
+					"path": [
+						"api",
+						"deck",
+						"new",
+						"shuffle",
+						""
+					],
+					"query": [
+						{
+							"key": "cards",
+							"value": "AS,KH,2C,0H"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Draw 2 cards",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}/draw/?count=2",
+					"protocol": "https",
+					"host": [
+						"deckofcardsapi",
+						"com"
+					],
+					"path": [
+						"api",
+						"deck",
+						"{{deck_id}}",
+						"draw",
+						""
+					],
+					"query": [
+						{
+							"key": "count",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Shuffle remaining cards",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}/shuffle/?remaining=true",
+					"protocol": "https",
+					"host": [
+						"deckofcardsapi",
+						"com"
+					],
+					"path": [
+						"api",
+						"deck",
+						"{{deck_id}}",
+						"shuffle",
+						""
+					],
+					"query": [
+						{
+							"key": "remaining",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add cards to pile (player1)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}/pile/player1/add/?cards=AS,2H",
+					"protocol": "https",
+					"host": [
+						"deckofcardsapi",
+						"com"
+					],
+					"path": [
+						"api",
+						"deck",
+						"{{deck_id}}",
+						"pile",
+						"player1",
+						"add",
+						""
+					],
+					"query": [
+						{
+							"key": "cards",
+							"value": "AS,2H"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List pile cards (player1)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}/pile/player1/list",
+					"protocol": "https",
+					"host": [
+						"deckofcardsapi",
+						"com"
+					],
+					"path": [
+						"api",
+						"deck",
+						"{{deck_id}}",
+						"pile",
+						"player1",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Deal 3 cards to Player 2 Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"player2_cards\", JSON.stringify(jsonData.cards));",
+							"pm.test(\"3 cards dealt to Player 2\", function () {",
+							"   pm.expect(jsonData.cards.length).to.eql(3);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}/draw/?count=3",
+					"protocol": "https",
+					"host": [
+						"deckofcardsapi",
+						"com"
+					],
+					"path": [
+						"api",
+						"deck",
+						"{{deck_id}}",
+						"draw",
+						""
+					],
+					"query": [
+						{
+							"key": "count",
+							"value": "3"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Deal 3 cards to Player 1 Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"player1_cards\", JSON.stringify(jsonData.cards));",
+							"pm.test(\"3 cards dealt to Player 1\", function () {",
+							"   pm.expect(jsonData.cards.length).to.eql(3);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}/draw/?count=3",
+					"protocol": "https",
+					"host": [
+						"deckofcardsapi",
+						"com"
+					],
+					"path": [
+						"api",
+						"deck",
+						"{{deck_id}}",
+						"draw",
+						""
+					],
+					"query": [
+						{
+							"key": "count",
+							"value": "3"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Blackjack Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"function cardValue(card) {",
+							"  const val = card.value;",
+							"  if (val === 'ACE') return 11;",
+							"  if (['KING','QUEEN','JACK'].includes(val)) return 10;",
+							"  return parseInt(val);",
+							"}",
+							"",
+							"let p1 = JSON.parse(pm.collectionVariables.get(\"player1_cards\"));",
+							"let p2 = JSON.parse(pm.collectionVariables.get(\"player2_cards\"));",
+							"",
+							"let p1score = cardValue(p1[0]) + cardValue(p1[1]);",
+							"let p2score = cardValue(p2[0]) + cardValue(p2[1]);",
+							"",
+							"let winner = 'None';",
+							"if (p1score === 21 && p2score === 21) { winner = 'Tie'; }",
+							"else if (p1score === 21) { winner = 'Player 1'; }",
+							"else if (p2score === 21) { winner = 'Player 2'; }",
+							"",
+							"pm.collectionVariables.set(\"winner\", winner);",
+							"console.log('Blackjack check:', {p1score, p2score, winner});",
+							"pm.test(\"Winner determined\", function () {",
+							"   pm.expect(['None','Tie','Player 1','Player 2']).to.include(winner);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}",
+					"protocol": "https",
+					"host": [
+						"deckofcardsapi",
+						"com"
+					],
+					"path": [
+						"api",
+						"deck",
+						"{{deck_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Return card to deck",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://deckofcardsapi.com/api/deck/{{deck_id}}/return/?cards=AS",
+					"protocol": "https",
+					"host": [
+						"deckofcardsapi",
+						"com"
+					],
+					"path": [
+						"api",
+						"deck",
+						"{{deck_id}}",
+						"return",
+						""
+					],
+					"query": [
+						{
+							"key": "cards",
+							"value": "AS"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "deck_id",
+			"value": ""
+		},
+		{
+			"key": "player1_value",
+			"value": ""
+		},
+		{
+			"key": "player2_value",
+			"value": ""
+		}
+	]
+}

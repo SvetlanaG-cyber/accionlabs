@@ -1,2 +1,0 @@
-# accionlabs
-interview tests
